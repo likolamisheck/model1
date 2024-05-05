@@ -183,7 +183,6 @@ class SimulationGUI(tk.Tk):
 
     def draw_memory(self):
         # Draw the memory
-                memory_x = 50
         memory_y = 50
         memory_width = 100
         memory_height = 300
