@@ -115,6 +115,22 @@ def visualize_cache_state(cache, figure):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class SimulationGUI(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -172,10 +188,28 @@ class SimulationGUI(tk.Tk):
         perform_button = tk.Button(control_frame, text="Perform Operation", command=self.perform_operation)
         perform_button.pack(pady=10)
 
+        # Create a text box on the canvas for displaying output
+        self.output_textbox = self.canvas.create_text(20, CANVAS_HEIGHT - 50, anchor="nw", font=("Arial", 12), text="Output:")
+
         # Add a canvas for cache state visualization
         self.cache_figure = plt.figure(figsize=(4, 2.5))
         self.cache_canvas = FigureCanvasTkAgg(self.cache_figure, master=self)
         self.cache_canvas.get_tk_widget().pack(side=tk.BOTTOM, padx=10, pady=10)
+
+    def perform_operation(self):
+        operation = self.operation_var.get()
+        processor_index = self.processor_var.get()
+        address = self.address_entry.get()
+
+        # Perform operation based on the selected operation type
+        if operation == "read":
+            output_text = f"Processor {processor_index} read from address {address}"
+        else:
+            data = random.randint(0, 255)
+            output_text = f"Processor {processor_index} wrote {data} to address {address}"
+
+        # Update the output text on the canvas
+        self.canvas.itemconfigure(self.output_textbox, text=f"Output: {output_text}")
 
     def draw_initial_state(self):
         # Clear the animation canvas
@@ -189,6 +223,19 @@ class SimulationGUI(tk.Tk):
         # Visualize the initial cache state
         visualize_cache_state(self.processors[0].cache, self.cache_figure)
         self.cache_canvas.draw()
+
+    # Methods for drawing memory, bus, and processors remain the same
+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
 
     def draw_memory(self):
         # Draw the memory
@@ -211,13 +258,12 @@ class SimulationGUI(tk.Tk):
         # Draw the processors
         processor_width = 100
         processor_height = 150
-        processor_spacing = (CANVAS_WIDTH - 200 - 4 * processor_width) / 3
-        processor_y = CANVAS_HEIGHT - processor_height - 50
+        processor_spacing = (CANVAS_WIDTH - 200 - 4 * processor_width)
+        processor_y = CANVAS_HEIGHT // 4
         for i in range(4):
-            processor_x = 200 + i * (processor_width + processor_spacing)
+            processor_x = 200 + i * (processor_width + processor_spacing // 3)
             self.canvas.create_rectangle(processor_x, processor_y, processor_x + processor_width, processor_y + processor_height, fill="lightblue")
-            self.canvas.create_text(processor_x + processor_width // 2, processor_y + 15, text=f"Processor {i}")
-
+            self.canvas.create_text(processor_x + processor_width // 2, processor_y + processor_height // 2, text=f"Processor {i}")
 
     def perform_operation(self):
         operation = self.operation_var.get()
