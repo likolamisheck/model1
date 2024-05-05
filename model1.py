@@ -183,7 +183,7 @@ class SimulationGUI(tk.Tk):
 
     def draw_memory(self):
         # Draw the memory
-        memory_x = 50
+                memory_x = 50
         memory_y = 50
         memory_width = 100
         memory_height = 300
@@ -202,4 +202,30 @@ class SimulationGUI(tk.Tk):
         # Draw the processors
         processor_width = 100
         processor_height = 150
-        processor_spacing = (CANVAS_WIDTH - 200 - 4 * processor_width)
+        processor_spacing = (CANVAS_WIDTH - 200 - 4 * processor_width) / 3
+        processor_y = CANVAS_HEIGHT - processor_height - 50
+        for i in range(4):
+            processor_x = 200 + i * (processor_width + processor_spacing)
+            self.canvas.create_rectangle(processor_x, processor_y, processor_x + processor_width, processor_y + processor_height, fill="lightblue")
+            self.canvas.create_text(processor_x + processor_width // 2, processor_y + 15, text=f"Processor {i}")
+
+    def perform_operation(self):
+        operation = self.operation_var.get()
+        processor_index = self.processor_var.get()
+        address = int(self.address_entry.get())
+
+        # Perform the operation based on the selected operation type
+        if operation == "read":
+            print(f"Processor {processor_index} reading from address {address}")
+            # Implement read operation
+        elif operation == "write":
+            data = random.randint(0, 255)
+            print(f"Processor {processor_index} writing {data} to address {address}")
+            # Implement write operation
+
+    def draw_cache(self):
+        pass  # Placeholder for drawing cache visualization
+
+if __name__ == "__main__":
+    root = SimulationGUI()
+    root.mainloop()
