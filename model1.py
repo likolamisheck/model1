@@ -12,6 +12,8 @@ MEMORY_SIZE = 16
 CACHE_LINE_SIZE = 1
 NUM_CACHE_LINES = 4
 ASSOCIATIVITY = 2
+CANVAS_WIDTH = 800
+CANVAS_HEIGHT = 400
 
 # Cache line states
 STATE_INVALID = 'I'
@@ -107,7 +109,7 @@ class SimulationGUI(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Cache Simulation")
-        self.geometry("800x600")
+        self.geometry(f"{CANVAS_WIDTH}x{CANVAS_HEIGHT + 200}")
 
         # Initialize components
         self.memory = Memory(size=16)
@@ -121,12 +123,12 @@ class SimulationGUI(tk.Tk):
 
     def create_widgets(self):
         # Create a canvas for animation
-        self.canvas = tk.Canvas(self, width=400, height=400, bg="white")
-        self.canvas.pack(side=tk.LEFT, padx=10, pady=10)
+        self.canvas = tk.Canvas(self, width=CANVAS_WIDTH, height=CANVAS_HEIGHT, bg="white")
+        self.canvas.pack(side=tk.TOP, padx=10, pady=10)
 
         # Create a frame for controls
         control_frame = tk.Frame(self)
-        control_frame.pack(side=tk.RIGHT, padx=10, pady=10)
+        control_frame.pack(side=tk.BOTTOM, padx=10, pady=10)
 
         # Add controls for read/write operations
         operation_label = tk.Label(control_frame, text="Operation:")
@@ -150,5 +152,53 @@ class SimulationGUI(tk.Tk):
             processor_radio.pack(pady=5)
 
         # Add controls for memory address
-        address_label = tk
-            likola 
+        address_label = tk.Label(control_frame, text="Memory Address:")
+        address_label.pack(pady=5)
+
+        self.address_entry = tk.Entry(control_frame)
+        self.address_entry.pack(pady=5)
+
+        # Add a button to perform the operation
+        perform_button = tk.Button(control_frame, text="Perform Operation", command=self.perform_operation)
+        perform_button.pack(pady=10)
+
+        # Add a canvas for cache state visualization
+        self.cache_figure = plt.figure(figsize=(4, 2.5))
+        self.cache_canvas = FigureCanvasTkAgg(self.cache_figure, master=self)
+        self.cache_canvas.get_tk_widget().pack(side=tk.BOTTOM, padx=10, pady=10)
+
+    def draw_initial_state(self):
+        # Clear the animation canvas
+        self.canvas.delete("all")
+
+        # Draw the initial state of the system
+        self.draw_memory()
+        self.draw_bus()
+        self.draw_processors()
+
+        # Visualize the initial cache state
+        visualize_cache_state(self.processors[0].cache, self.cache_figure)
+        self.cache_canvas.draw()
+
+    def draw_memory(self):
+        # Draw the memory
+        memory_x = 50
+        memory_y = 50
+        memory_width = 100
+        memory_height = 300
+        self.canvas.create_rectangle(memory_x, memory_y, memory_x + memory_width, memory_y + memory_height, fill="lightgray")
+        self.canvas.create_text(memory_x + memory_width // 2, memory_y + 15, text="Memory")
+
+    def draw_bus(self):
+        # Draw the bus
+        bus_x1 = 200
+        bus_x2 = CANVAS_WIDTH - 200
+        bus_y = CANVAS_HEIGHT // 2
+        self.canvas.create_line(bus_x1, bus_y, bus_x2, bus_y, width=3)
+        self.canvas.create_text((bus_x1 + bus_x2) // 2, bus_y - 15, text="Bus")
+
+    def draw_processors(self):
+        # Draw the processors
+        processor_width = 100
+        processor_height = 150
+        processor_spacing = (CANVAS_WIDTH - 200 - 4 * processor_width) // 
