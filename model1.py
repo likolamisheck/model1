@@ -5,6 +5,7 @@ matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 import numpy as np
+import time
 
 # Constants
 NUM_PROCESSORS = 4
@@ -37,13 +38,13 @@ class Cache:
         self.lines = [CacheLine() for _ in range(num_lines)]
 
     def read(self, address):
-        pass # Placeholder for read operation
+        pass  # Placeholder for read operation
 
     def write(self, address, data):
-        pass # Placeholder for write operation
+        pass  # Placeholder for write operation
 
     def invalidate(self, address):
-        pass # Placeholder for invalidate operation
+        pass  # Placeholder for invalidate operation
 
 # Class to represent the memory
 class Memory:
@@ -201,4 +202,4 @@ class SimulationGUI(tk.Tk):
         # Draw the processors
         processor_width = 100
         processor_height = 150
-        processor_spacing = (CANVAS_WIDTH - 200 - 4 * processor_width) // 
+        processor_spacing = (CANVAS_WIDTH - 200 - 4 * processor_width)
