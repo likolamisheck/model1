@@ -106,6 +106,15 @@ def visualize_cache_state(cache, figure):
     ax.set_xlabel('Cache Line')
     ax.set_ylabel('State')
 
+
+
+
+
+
+
+
+
+
 class SimulationGUI(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -183,6 +192,7 @@ class SimulationGUI(tk.Tk):
 
     def draw_memory(self):
         # Draw the memory
+        memory_x = 50
         memory_y = 50
         memory_width = 100
         memory_height = 300
@@ -207,6 +217,7 @@ class SimulationGUI(tk.Tk):
             processor_x = 200 + i * (processor_width + processor_spacing)
             self.canvas.create_rectangle(processor_x, processor_y, processor_x + processor_width, processor_y + processor_height, fill="lightblue")
             self.canvas.create_text(processor_x + processor_width // 2, processor_y + 15, text=f"Processor {i}")
+
 
     def perform_operation(self):
         operation = self.operation_var.get()
