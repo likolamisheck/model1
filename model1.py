@@ -6,7 +6,6 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 import numpy as np
 import time
-
 # Constants
 NUM_PROCESSORS = 4
 MEMORY_SIZE = 16
@@ -106,36 +105,11 @@ def visualize_cache_state(cache, figure):
     ax.set_xlabel('Cache Line')
     ax.set_ylabel('State')
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class SimulationGUI(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Cache Simulation")
-        self.geometry(f"{CANVAS_WIDTH}x{CANVAS_HEIGHT + 200}")
+        self.geometry(f"{CANVAS_WIDTH}x{CANVAS_HEIGHT + 300}")  # Increased height
 
         # Initialize components
         self.memory = Memory(size=16)
@@ -151,6 +125,13 @@ class SimulationGUI(tk.Tk):
         # Create a canvas for animation
         self.canvas = tk.Canvas(self, width=CANVAS_WIDTH, height=CANVAS_HEIGHT, bg="white")
         self.canvas.pack(side=tk.TOP, padx=10, pady=10)
+
+        # Create a separate canvas for the output text box
+        self.output_canvas = tk.Canvas(self, width=CANVAS_WIDTH, height=100, bg="white")
+        self.output_canvas.pack(side=tk.TOP, padx=10, pady=10)
+
+        # Create a text box on the output canvas for displaying output
+        self.output_textbox = self.output_canvas.create_text(20, 20, anchor="nw", font=("Arial", 12), text="Output:")
 
         # Create a frame for controls
         control_frame = tk.Frame(self)
@@ -188,9 +169,6 @@ class SimulationGUI(tk.Tk):
         perform_button = tk.Button(control_frame, text="Perform Operation", command=self.perform_operation)
         perform_button.pack(pady=10)
 
-        # Create a text box on the canvas for displaying output
-        self.output_textbox = self.canvas.create_text(20, CANVAS_HEIGHT - 50, anchor="nw", font=("Arial", 12), text="Output:")
-
         # Add a canvas for cache state visualization
         self.cache_figure = plt.figure(figsize=(4, 2.5))
         self.cache_canvas = FigureCanvasTkAgg(self.cache_figure, master=self)
@@ -199,17 +177,22 @@ class SimulationGUI(tk.Tk):
     def perform_operation(self):
         operation = self.operation_var.get()
         processor_index = self.processor_var.get()
-        address = self.address_entry.get()
+        address = int(self.address_entry.get())
 
-        # Perform operation based on the selected operation type
+        # Perform the operation based on the selected operation type
         if operation == "read":
-            output_text = f"Processor {processor_index} read from address {address}"
-        else:
+            output_text = f"Processor {processor_index} reading from address {address}"
+            # Implement read operation
+        elif operation == "write":
             data = random.randint(0, 255)
-            output_text = f"Processor {processor_index} wrote {data} to address {address}"
+            output_text = f"Processor {processor_index} writing {data} to address {address}"
+            # Implement write operation
 
-        # Update the output text on the canvas
-        self.canvas.itemconfigure(self.output_textbox, text=f"Output: {output_text}")
+        # Update the output text on the output canvas
+        self.output_canvas.itemconfigure(self.output_textbox, text=f"Output: {output_text}")
+
+
+
 
     def draw_initial_state(self):
         # Clear the animation canvas
@@ -224,18 +207,7 @@ class SimulationGUI(tk.Tk):
         visualize_cache_state(self.processors[0].cache, self.cache_figure)
         self.cache_canvas.draw()
 
-    # Methods for drawing memory, bus, and processors remain the same
-
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+    # Methods for drawing memory, bus, and processors remain thevii same
 
     def draw_memory(self):
         # Draw the memory
@@ -265,6 +237,7 @@ class SimulationGUI(tk.Tk):
             self.canvas.create_rectangle(processor_x, processor_y, processor_x + processor_width, processor_y + processor_height, fill="lightblue")
             self.canvas.create_text(processor_x + processor_width // 2, processor_y + processor_height // 2, text=f"Processor {i}")
 
+   
     def perform_operation(self):
         operation = self.operation_var.get()
         processor_index = self.processor_var.get()
@@ -272,16 +245,19 @@ class SimulationGUI(tk.Tk):
 
         # Perform the operation based on the selected operation type
         if operation == "read":
-            print(f"Processor {processor_index} reading from address {address}")
+            output_text = f"Processor {processor_index} reading from address {address}"
             # Implement read operation
         elif operation == "write":
             data = random.randint(0, 255)
-            print(f"Processor {processor_index} writing {data} to address {address}")
+            output_text = f"Processor {processor_index} writing {data} to address {address}"
             # Implement write operation
+
+        # Update the output text on the output canvas
+        self.output_canvas.itemconfigure(self.output_textbox, text=f"Output: {output_text}")
+
 
     def draw_cache(self):
         pass  # Placeholder for drawing cache visualization
-
 if __name__ == "__main__":
     root = SimulationGUI()
     root.mainloop()
