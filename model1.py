@@ -184,13 +184,6 @@ class SimulationGUI(tk.Tk):
         # Create GUI elements
         self.create_widgets()
         self.draw_initial_state()
-
-
-        
-        
-     
-        
-        
         
 
     def create_widgets(self):
@@ -287,8 +280,7 @@ class SimulationGUI(tk.Tk):
         visualize_cache_state(self.processors[0].cache, self.cache_figure)
         self.cache_canvas.draw()
 
-    # Methods for drawing memory, bus, and processors remain thevii same
-
+    
     def draw_memory(self):
         # Draw the memory
         memory_x = 50
@@ -300,35 +292,31 @@ class SimulationGUI(tk.Tk):
 
     def draw_bus(self):
         # Draw the bus
-        bus_x1 = 200
-        bus_x2 = CANVAS_WIDTH - 200
+        bus_x1 = 50 + 100  # Adjusted to the center of memory
+        bus_x2 = 200 + 3 * (100 + (CANVAS_WIDTH - 200 - 4 * 100) // 3) + 100 // 2  # Adjusted to CPU 3
         bus_y = CANVAS_HEIGHT // 2
         self.canvas.create_line(bus_x1, bus_y, bus_x2, bus_y, width=3)
         self.canvas.create_text((bus_x1 + bus_x2) // 2, bus_y - 15, text="Bus")
 
+
+
+
+
+
     def draw_processors(self):
-        # Draw the processors
+    # Draw the processors
         processor_width = 100
         processor_height = 150
         processor_spacing = (CANVAS_WIDTH - 200 - 4 * processor_width)
         processor_y = CANVAS_HEIGHT // 4
+        cpu_coords = []  # Store CPU coordinates for connecting lines
         for i in range(4):
             processor_x = 200 + i * (processor_width + processor_spacing // 3)
             self.canvas.create_rectangle(processor_x, processor_y, processor_x + processor_width, processor_y + processor_height, fill="lightblue")
             self.canvas.create_text(processor_x + processor_width // 2, processor_y + processor_height // 2, text=f"Processor {i}")
+            cpu_coords.append((processor_x + processor_width // 2, processor_y + processor_height // 2))
 
-    # Draw the line connecting memory to CPU 0
-        memory_x = 50
-        memory_y = 50
-        memory_width = 100
-        memory_height = 300
-        cpu0_x = 200
-        cpu0_y = processor_y
-        bus_y = (memory_y + memory_height // 2 + cpu0_y + processor_height // 2) // 2
-        self.canvas.create_line(memory_x + memory_width, memory_y + memory_height // 2, cpu0_x, bus_y, width=3)
-        self.canvas.create_text((memory_x + memory_width + cpu0_x) // 2, (memory_y + memory_height // 2 + bus_y) // 2, text="Bus")
 
-   
     def draw_cache(self):
         pass  # Placeholder for drawing cache visualization
 if __name__ == "__main__":
