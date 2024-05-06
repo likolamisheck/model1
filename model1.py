@@ -14,7 +14,6 @@ NUM_CACHE_LINES = 4
 ASSOCIATIVITY = 2
 CANVAS_WIDTH = 800
 CANVAS_HEIGHT = 400
-
 # Cache line states
 STATE_INVALID = 'I'
 STATE_SHARED = 'S'
@@ -322,11 +321,6 @@ class SimulationGUI(tk.Tk):
         bus_y = CANVAS_HEIGHT // 2
         self.canvas.create_line(bus_x1, bus_y, bus_x2, bus_y, width=3)
         self.canvas.create_text((bus_x1 + bus_x2) // 2, bus_y - 15, text="Bus")
-
-
-
-
-
 
     def draw_processors(self):
     # Draw the processors
