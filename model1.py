@@ -6,7 +6,6 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 import numpy as np
 import time
-
 # Constants
 NUM_PROCESSORS = 4
 MEMORY_SIZE = 16
@@ -38,26 +37,39 @@ class Cache:
         self.lines = [CacheLine() for _ in range(num_lines)]
 
     def read(self, address):
-        # Implement read operation according to MOESI protocol with random replacement
-        tag = self.get_tag(address)
-        cache_line = self.find_cache_line(tag)
-        if cache_line is None:
-            self.handle_cache_miss(address, tag, True)
-        else:
-            self.moesi_protocol.handle_read(cache_line)
+        tag, index = divmod(address, NUM_CACHE_LINES)
+        for line in self.lines:
+            if line.tag == tag:
+                line.last_access_time = time.time()
+                return line.data
+        # Cache miss, implement random replacement
+        random_index = random.randint(0, self.num_lines - 1)
+        self.lines[random_index].tag = tag
+        self.lines[random_index].data = 'Data from memory'
+        self.lines[random_index].last_access_time = time.time()
+        return self.lines[random_index].data
 
     def write(self, address, data):
-        # Implement write operation according to MOESI protocol with random replacement
-        tag = self.get_tag(address)
-        cache_line = self.find_cache_line(tag)
-        if cache_line is None:
-            self.handle_cache_miss(address, tag, False)
-        else:
-            self.moesi_protocol.handle_write(cache_line)
+        tag, index = divmod(address, NUM_CACHE_LINES)
+        for line in self.lines:
+            if line.tag == tag:
+                line.data = data
+                line.state = STATE_MODIFIED
+                line.last_access_time = time.time()
+                return
+        # Cache miss, implement random replacement
+        random_index = random.randint(0, self.num_lines - 1)
+        self.lines[random_index].tag = tag
+        self.lines[random_index].data = data
+        self.lines[random_index].state = STATE_MODIFIED
+        self.lines[random_index].last_access_time = time.time()
 
     def invalidate(self, address):
-        # Implement invalidate operation according to MOESI protocol
-        pass
+        tag, index = divmod(address, NUM_CACHE_LINES)
+        for line in self.lines:
+            if line.tag == tag:
+                line.state = STATE_INVALID
+                return
 
     def get_tag(self, address):
         # Extract tag from the memory address
@@ -84,7 +96,6 @@ class Cache:
         else:
             victim_line.state = STATE_MODIFIED
             self.moesi_protocol.handle_write(victim_line)
-
 # Class to represent the memory
 class Memory:
     def __init__(self, size):
@@ -185,7 +196,6 @@ class SimulationGUI(tk.Tk):
         self.create_widgets()
         self.draw_initial_state()
         
-
     def create_widgets(self):
         # Create a canvas for animation
         self.canvas = tk.Canvas(self, width=CANVAS_WIDTH, height=CANVAS_HEIGHT, bg="white")
@@ -238,6 +248,7 @@ class SimulationGUI(tk.Tk):
         self.cache_figure = plt.figure(figsize=(4, 2.5))
         self.cache_canvas = FigureCanvasTkAgg(self.cache_figure, master=self)
         self.cache_canvas.get_tk_widget().pack(side=tk.BOTTOM, padx=10, pady=10)
+            
 
     def perform_operation(self):
         operation = self.operation_var.get()
@@ -256,17 +267,31 @@ class SimulationGUI(tk.Tk):
 
     # Perform the operation based on the selected operation type
         if operation == "read":
-            output_text = f"Processor {processor_index} reading from address {address}"
-        # Implement read operation
+            data = self.processors[processor_index].read(address)
+            output_text = f"Processor {processor_index} reading from address {address}, Data: {data}, Cache State: {[line.state for line in self.processors[processor_index].cache.lines]}"
         elif operation == "write":
             data = random.randint(0, 255)
-            output_text = f"Processor {processor_index} writing {data} to address {address}"
-        # Implement write operation
+            self.processors[processor_index].write(address, data)
+            output_text = f"Processor {processor_index} writing {data} to address {address}, Cache State: {[line.state for line in self.processors[processor_index].cache.lines]}"
 
     # Update the output text on the output canvas
         self.output_canvas.itemconfigure(self.output_textbox, text=f"Output: {output_text}")
+        
+        
+      #   Check for cache coherence events
+        events = []
+        for i, processor in enumerate(self.processors):
+            if i != processor_index:
+                other_cache_state = [line.state for line in processor.cache.lines]
+                for j, line_state in enumerate(other_cache_state):
+                    if line_state == 'M':
+                        events.append(f"Processor {processor_index} invalidated line {j} in Processor {i}'s cache.")
+                        processor.cache.lines[j].state = 'I'
 
-
+    # Update the output text on the output canvas
+        output_text += '\n' + '\n'.join(events)
+        self.output_canvas.itemconfigure(self.output_textbox, text=f"Output: {output_text}")
+        
     def draw_initial_state(self):
         # Clear the animation canvas
         self.canvas.delete("all")
