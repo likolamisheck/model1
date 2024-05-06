@@ -6,6 +6,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 import numpy as np
 import time
+
 # Constants
 NUM_PROCESSORS = 4
 MEMORY_SIZE = 16
@@ -37,13 +38,52 @@ class Cache:
         self.lines = [CacheLine() for _ in range(num_lines)]
 
     def read(self, address):
-        pass  # Placeholder for read operation
+        # Implement read operation according to MOESI protocol with random replacement
+        tag = self.get_tag(address)
+        cache_line = self.find_cache_line(tag)
+        if cache_line is None:
+            self.handle_cache_miss(address, tag, True)
+        else:
+            self.moesi_protocol.handle_read(cache_line)
 
     def write(self, address, data):
-        pass  # Placeholder for write operation
+        # Implement write operation according to MOESI protocol with random replacement
+        tag = self.get_tag(address)
+        cache_line = self.find_cache_line(tag)
+        if cache_line is None:
+            self.handle_cache_miss(address, tag, False)
+        else:
+            self.moesi_protocol.handle_write(cache_line)
 
     def invalidate(self, address):
-        pass  # Placeholder for invalidate operation
+        # Implement invalidate operation according to MOESI protocol
+        pass
+
+    def get_tag(self, address):
+        # Extract tag from the memory address
+        return address // CACHE_LINE_SIZE
+
+    def find_cache_line(self, tag):
+        # Find the cache line with the given tag
+        for line in self.lines:
+            if line.tag == tag:
+                return line
+        return None
+
+    def handle_cache_miss(self, address, tag, is_read):
+        # Handle cache miss by randomly replacing a cache line
+        victim_line = random.choice(self.lines)
+        if victim_line.state == STATE_MODIFIED:
+            # Write back the modified data to memory
+            self.memory.write(victim_line.tag * CACHE_LINE_SIZE, victim_line.data)
+        victim_line.tag = tag
+        victim_line.data = self.memory.read(address)
+        if is_read:
+            victim_line.state = STATE_SHARED
+            self.moesi_protocol.handle_read(victim_line)
+        else:
+            victim_line.state = STATE_MODIFIED
+            self.moesi_protocol.handle_write(victim_line)
 
 # Class to represent the memory
 class Memory:
@@ -52,10 +92,12 @@ class Memory:
         self.data = [0] * size  # Main memory contents
 
     def read(self, address):
-        pass  # Placeholder for read operation
+        # Implement read operation
+        return self.data[address]
 
     def write(self, address, data):
-        pass  # Placeholder for write operation
+        # Implement write operation
+        self.data[address] = data
 
 # Class to represent the processor
 class Processor:
@@ -64,10 +106,12 @@ class Processor:
         self.memory = memory
 
     def read(self, address):
-        pass  # Placeholder for read operation
+        # Implement read operation according to MOESI protocol
+        self.cache.read(address)
 
     def write(self, address, data):
-        pass  # Placeholder for write operation
+        # Implement write operation according to MOESI protocol
+        self.cache.write(address, data)
 
 # Class to represent the bus
 class Bus:
@@ -75,10 +119,12 @@ class Bus:
         pass
 
     def read(self, address):
-        pass  # Placeholder for read operation
+        # Implement read operation
+        pass
 
     def write(self, address, data):
-        pass  # Placeholder for write operation
+        # Implement write operation
+        pass
 
 # Class to implement the MOESI protocol
 class MOESIProtocol:
@@ -86,13 +132,31 @@ class MOESIProtocol:
         pass
 
     def handle_read(self, cache_line):
-        pass  # Placeholder for handling read operation
+        # Implement handling of read operation according to MOESI protocol
+        if cache_line.state == STATE_INVALID:
+            cache_line.state = STATE_SHARED
+        elif cache_line.state == STATE_EXCLUSIVE:
+            cache_line.state = STATE_SHARED
+        elif cache_line.state == STATE_MODIFIED:
+            cache_line.state = STATE_OWNED
+        # Update other cache lines as needed
 
     def handle_write(self, cache_line):
-        pass  # Placeholder for handling write operation
+        # Implement handling of write operation according to MOESI protocol
+        if cache_line.state == STATE_INVALID:
+            cache_line.state = STATE_MODIFIED
+        elif cache_line.state == STATE_SHARED:
+            cache_line.state = STATE_MODIFIED
+            # Invalidate other shared copies
+        elif cache_line.state == STATE_EXCLUSIVE:
+            cache_line.state = STATE_MODIFIED
+        elif cache_line.state == STATE_OWNED:
+            cache_line.state = STATE_MODIFIED
+            # Invalidate other shared copies
 
     def handle_invalidate(self, cache_line):
-        pass  # Placeholder for handling invalidate operation
+        # Implement handling of invalidate operation according to MOESI protocol
+        pass
 
 def visualize_cache_state(cache, figure):
     states = [line.state for line in cache.lines]
@@ -120,6 +184,14 @@ class SimulationGUI(tk.Tk):
         # Create GUI elements
         self.create_widgets()
         self.draw_initial_state()
+
+
+        
+        
+     
+        
+        
+        
 
     def create_widgets(self):
         # Create a canvas for animation
@@ -177,21 +249,29 @@ class SimulationGUI(tk.Tk):
     def perform_operation(self):
         operation = self.operation_var.get()
         processor_index = self.processor_var.get()
-        address = int(self.address_entry.get())
+        address_input = self.address_entry.get()
 
-        # Perform the operation based on the selected operation type
+    # Check if the address input is a valid integer
+        try:
+            address = int(address_input)
+            if not 0 <= address <= 15:
+                raise ValueError("Address must be between 0 and 15")
+        except ValueError:
+            output_text = "Invalid memory address! Please enter a valid number between 0 and 15."
+            self.output_canvas.itemconfigure(self.output_textbox, text=f"Output: {output_text}")
+            return
+
+    # Perform the operation based on the selected operation type
         if operation == "read":
             output_text = f"Processor {processor_index} reading from address {address}"
-            # Implement read operation
+        # Implement read operation
         elif operation == "write":
             data = random.randint(0, 255)
             output_text = f"Processor {processor_index} writing {data} to address {address}"
-            # Implement write operation
+        # Implement write operation
 
-        # Update the output text on the output canvas
+    # Update the output text on the output canvas
         self.output_canvas.itemconfigure(self.output_textbox, text=f"Output: {output_text}")
-
-
 
 
     def draw_initial_state(self):
@@ -237,25 +317,18 @@ class SimulationGUI(tk.Tk):
             self.canvas.create_rectangle(processor_x, processor_y, processor_x + processor_width, processor_y + processor_height, fill="lightblue")
             self.canvas.create_text(processor_x + processor_width // 2, processor_y + processor_height // 2, text=f"Processor {i}")
 
+    # Draw the line connecting memory to CPU 0
+        memory_x = 50
+        memory_y = 50
+        memory_width = 100
+        memory_height = 300
+        cpu0_x = 200
+        cpu0_y = processor_y
+        bus_y = (memory_y + memory_height // 2 + cpu0_y + processor_height // 2) // 2
+        self.canvas.create_line(memory_x + memory_width, memory_y + memory_height // 2, cpu0_x, bus_y, width=3)
+        self.canvas.create_text((memory_x + memory_width + cpu0_x) // 2, (memory_y + memory_height // 2 + bus_y) // 2, text="Bus")
+
    
-    def perform_operation(self):
-        operation = self.operation_var.get()
-        processor_index = self.processor_var.get()
-        address = int(self.address_entry.get())
-
-        # Perform the operation based on the selected operation type
-        if operation == "read":
-            output_text = f"Processor {processor_index} reading from address {address}"
-            # Implement read operation
-        elif operation == "write":
-            data = random.randint(0, 255)
-            output_text = f"Processor {processor_index} writing {data} to address {address}"
-            # Implement write operation
-
-        # Update the output text on the output canvas
-        self.output_canvas.itemconfigure(self.output_textbox, text=f"Output: {output_text}")
-
-
     def draw_cache(self):
         pass  # Placeholder for drawing cache visualization
 if __name__ == "__main__":
